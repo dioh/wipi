@@ -34,11 +34,7 @@ dot11_types = [Dot11,
 def pull_data():
     """ Obtiene datos de la interfaz. Deberia delegar el pedido al manager
         de datos """
-    sniff(iface="mon0",prn=lambda x:
-            (x, dict_print))
-
-
-
+    sniff(iface=IFACE, prn=lambda x: (x, dict_print))
 
 @staticmethod
 def process_sniffed_package(p, post_process):
@@ -74,7 +70,6 @@ def process_sniffed_package(p, post_process):
 
     post_process(d)
 
-
 @staticmethod
 def dict_print(d):
     for k, v in d.items():
@@ -84,10 +79,6 @@ def dict_print(d):
 def post_process_package_action(d):
     if d: print d
 
-
-
 if __name__ == '__main__':
-    
     #subprocess.Popen(["airmon-ng", "start", IFACE ])
-    
     pull_data()
