@@ -1,4 +1,5 @@
 import subprocess
+import sys
 try:
     from scapy.sendrecv import sniff
     from scapy.layers.dot11 import *
@@ -6,7 +7,12 @@ except Exception as e:
     print "Install scapy, dependency not met"
     raise e
 
-IFACE = "mon0"
+if len(sys.argv) != 2:
+   print "usage: wipi.py iface"
+   print "iface must be provided"
+   exit(1)
+
+IFACE = sys.argv[1]
 
 dot11_types = [Dot11,
         Dot11Addr3MACField,
@@ -34,17 +40,15 @@ dot11_types = [Dot11,
 def pull_data():
     """ Obtiene datos de la interfaz. Deberia delegar el pedido al manager
         de datos """
-    sniff(iface="mon0",prn=lambda x:
-            (x, dict_print))
+    sniff(iface=IFACE,prn = lambda x: process_sniffed_package(x, dict2log))
 
 
 
 
-@staticmethod
 def process_sniffed_package(p, post_process):
 
     d = {}
-    if ( (p.haslayer(Dot11Beacon) or p.haslayer(Dot11ProbeResp)) ):
+    if ( p.haslayer(Dot11Elt) ):
 
         ssid        = p[Dot11Elt].info
         d["ssid"]   = ssid
@@ -54,36 +58,43 @@ def process_sniffed_package(p, post_process):
         # Guardo el tipo de probe:
         lsublayers = [ i.name for i in filter( lambda x: p.haslayer(x), dot11_types ) ]
 
-        channel    = str(ord(p[Dot11Elt:3].info))
-        capability = p.sprintf("{Dot11Beacon:%Dot11Beacon.cap%}\
-                {Dot11ProbeResp:%Dot11ProbeResp.cap%}")
-        #power      = p.sprintf("{PrismHeader:%PrismHeader.signal%}")
-
-        # Check for encrypted networks
-        #enc  = 'OPN'
-        #penc = re.compile("privacy")
-        #if penc.search(capability):enc = 'WEP'
-
-        # Display discovered AP		
-        #print ssid+spacing+bssid+"\t"+channel+"\t"+enc+"\t"+power
-
-        # Save discovered AP
-        #ap[p[Dot11].addr3] = p[Dot11Elt].info	
-
         d = {"ssid": ssid, "bssid": bssid, "layers" : lsublayers}
+
+        if p.haslayer(Dot11ProbeResp):
+            d["ts"] = p[Dot11ProbeResp].timestamp
+
+        if p.haslayer(Dot11Beacon):
+            d["ts"] = p[Dot11Beacon].timestamp
+
+        #strptime
 
     post_process(d)
 
 
-@staticmethod
 def dict_print(d):
     for k, v in d.items():
         print "%s \t=\t%s" % (k, v) 
 
-@staticmethod
 def post_process_package_action(d):
     if d: print d
 
+def dict2log(kwargs):
+    access_point = kwargs.get("ssid", "Unknown")
+    mac = kwargs.get("bssid", "Unknown")
+    ts = kwargs.get("ts", "[0/0/00:0:0]")
+    request_size = kwargs.get("size", "100") 
+    response_code = kwargs.get("code", "200") 
+    
+    # TODO: lo armamos en el process o en el post process?
+    request         = kwargs.get("req", "frula")
+
+    if access_point == mac == "Unknown":
+        return
+    
+    template =  '{mac} - - {ts} "{request}" {response_code} {request_size} "-" "-" "{access_point}"' 
+
+    print template.format(mac=mac, ts=ts, request=request, response_code=200,
+            request_size=100, access_point=access_point)
 
 
 if __name__ == '__main__':
