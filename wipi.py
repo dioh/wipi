@@ -1,5 +1,6 @@
 import subprocess
 import sys
+from datetime import datetime
 try:
     from scapy.sendrecv import sniff
     from scapy.layers.dot11 import *
@@ -14,11 +15,9 @@ if len(sys.argv) != 2:
 
 IFACE = sys.argv[1]
 
-dot11_types = [Dot11,
-        Dot11Addr3MACField,
+dot11_types = [ Dot11Addr3MACField,
         Dot11AssoReq,
         Dot11Beacon,
-        Dot11Elt,
         Dot11ProbeResp,
         Dot11ReassoResp,
         Dot11ATIM,
@@ -35,6 +34,7 @@ dot11_types = [Dot11,
         Dot11ProbeReq,
         Dot11ReassoReq,
         Dot11WEP]
+        #Dot11Elt,
 
 
 def pull_data():
@@ -60,12 +60,15 @@ def process_sniffed_package(p, post_process):
 
         d = {"ssid": ssid, "bssid": bssid, "layers" : lsublayers}
 
+        d["req"] = lsublayers[-1]
+
         if p.haslayer(Dot11ProbeResp):
             d["ts"] = p[Dot11ProbeResp].timestamp
 
         if p.haslayer(Dot11Beacon):
             d["ts"] = p[Dot11Beacon].timestamp
 
+        d["ts"] = datetime.now()
         #strptime
 
     post_process(d)
@@ -93,7 +96,7 @@ def dict2log(kwargs):
     
     template =  '{mac} - - {ts} "{request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 
-    print template.format(mac=mac, ts=ts, request=request, response_code=200,
+    print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S]"), request=request, response_code=200,
             request_size=100, access_point=access_point)
 
 
