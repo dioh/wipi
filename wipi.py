@@ -40,10 +40,14 @@ dot11_types = [ Dot11Addr3MACField,
 def pull_data():
     """ Obtiene datos de la interfaz. Deberia delegar el pedido al manager
         de datos """
+<<<<<<< HEAD
     sniff(iface=IFACE,prn = lambda x: process_sniffed_package(x, dict2log), lfilter=lambda x: x.haslayer(Dot11Elt) )
 
 
 
+=======
+    sniff(iface=IFACE, prn=lambda x: (x, dict_print))
+>>>>>>> 542a9bb04a7c75bd3b5b0f03bef19aced92d8de2
 
 def process_sniffed_package(p, post_process):
 
@@ -76,7 +80,11 @@ def process_sniffed_package(p, post_process):
     except Exception as e:
         print e
 
+<<<<<<< HEAD
 
+=======
+@staticmethod
+>>>>>>> 542a9bb04a7c75bd3b5b0f03bef19aced92d8de2
 def dict_print(d):
     for k, v in d.items():
         print "%s \t=\t%s" % (k, v) 
@@ -84,6 +92,7 @@ def dict_print(d):
 def post_process_package_action(d):
     if d: print d
 
+<<<<<<< HEAD
 def dict2log(kwargs):
     access_point = kwargs.get("ssid", "Unknown")
     mac = kwargs.get("bssid", "Unknown")
@@ -103,8 +112,8 @@ def dict2log(kwargs):
             request_size=request_size, access_point=access_point)
 
 
+=======
+>>>>>>> 542a9bb04a7c75bd3b5b0f03bef19aced92d8de2
 if __name__ == '__main__':
-    
     #subprocess.Popen(["airmon-ng", "start", IFACE ])
-    
     pull_data()
