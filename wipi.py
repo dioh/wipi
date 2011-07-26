@@ -1,3 +1,6 @@
+#!/usr/bin/python
+#encoding utf-8
+
 import subprocess
 import sys
 from datetime import datetime
@@ -5,8 +8,10 @@ try:
     from scapy.sendrecv import sniff
     from scapy.layers.dot11 import *
 except Exception as e:
-    print "Install scapy, dependency not met"
+    print "Install scapy, missing dependency "
     raise e
+
+import string
 
 if len(sys.argv) != 2:
    print "usage: wipi.py iface"
@@ -48,6 +53,7 @@ def process_sniffed_package(p, post_process):
 
     try:
         ssid        = p[Dot11Elt].info
+        ssid = filter(lambda x: x in string.printable,  ssid) 
         d["ssid"]   = ssid
         bssid       = p[Dot11].addr3		
         d["bssid"]  = bssid
@@ -57,7 +63,7 @@ def process_sniffed_package(p, post_process):
 
         d = {"ssid": ssid, "bssid": bssid, "layers" : lsublayers}
 
-        d["req"] = lsublayers[-1]
+        d["req"] = ", ".join(lsublayers).replace("802.11 ", "")
         d["size"] = p[Dot11Elt].len * 8
 
         if p.haslayer(Dot11ProbeResp):
@@ -67,6 +73,7 @@ def process_sniffed_package(p, post_process):
             d["ts"] = p[Dot11Beacon].timestamp
 
         d["ts"] = datetime.now()
+
         #strptime
 
         post_process(d)
@@ -87,8 +94,7 @@ def dict2log(kwargs):
     request_size = kwargs.get("size", "100") 
     response_code = kwargs.get("code", "200") 
     
-    # TODO: lo armamos en el process o en el post process?
-    request         = kwargs.get("req", "frula")
+    request         = kwargs.get("req", "no-data")
 
     if access_point == mac == "Unknown":
         return
