@@ -40,7 +40,7 @@ dot11_types = [ Dot11Addr3MACField,
 def pull_data():
     """ Obtiene datos de la interfaz. Deberia delegar el pedido al manager
         de datos """
-    sniff(iface=IFACE,prn = lambda x: process_sniffed_package(x, dict2log))
+    sniff(iface=IFACE,prn = lambda x: process_sniffed_package(x, dict2log), lfilter=lambda x: x.haslayer(Dot11Elt) )
 
 
 
@@ -48,8 +48,8 @@ def pull_data():
 def process_sniffed_package(p, post_process):
 
     d = {}
-    if ( p.haslayer(Dot11Elt) ):
 
+    try:
         ssid        = p[Dot11Elt].info
         d["ssid"]   = ssid
         bssid       = p[Dot11].addr3		
@@ -61,6 +61,7 @@ def process_sniffed_package(p, post_process):
         d = {"ssid": ssid, "bssid": bssid, "layers" : lsublayers}
 
         d["req"] = lsublayers[-1]
+        d["size"] = p[Dot11Elt].len * 8
 
         if p.haslayer(Dot11ProbeResp):
             d["ts"] = p[Dot11ProbeResp].timestamp
@@ -71,7 +72,9 @@ def process_sniffed_package(p, post_process):
         d["ts"] = datetime.now()
         #strptime
 
-    post_process(d)
+        post_process(d)
+    except Exception as e:
+        print e
 
 
 def dict_print(d):
@@ -97,7 +100,7 @@ def dict2log(kwargs):
     template =  '{mac} - - {ts} "{request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 
     print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S]"), request=request, response_code=200,
-            request_size=100, access_point=access_point)
+            request_size=request_size, access_point=access_point)
 
 
 if __name__ == '__main__':
