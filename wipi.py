@@ -38,20 +38,20 @@ dot11_types = [ Dot11Addr3MACField,
         Dot11Disas,
         Dot11ProbeReq,
         Dot11ReassoReq,
-        Dot11WEP]
-        #Dot11Elt,
-
+        Dot11WEP,
+        ]
 
 def pull_data():
-    """ Obtiene datos de la interfaz. Deberia delegar el pedido al manager
-        de datos """
-    sniff(iface=IFACE,prn = lambda x: process_sniffed_package(x, dict2log), lfilter=lambda x: x.haslayer(Dot11Elt) )
+    """
+    Obtiene datos de la interfaz. Deberia delegar el pedido al manager de datos
+    """
+    sniff(iface = IFACE,
+          prn = lambda package: process_sniffed_package(package, dict2log),
+          lfilter = lambda package: package.haslayer(Dot11Elt) )
 
 def process_sniffed_package(p, post_process):
-
-    d = {}
-
     try:
+        d = {}
         ssid        = p[Dot11Elt].info
         ssid = filter(lambda x: x in string.printable,  ssid) 
         d["ssid"]   = ssid
@@ -64,47 +64,42 @@ def process_sniffed_package(p, post_process):
         d = {"ssid": ssid, "bssid": bssid, "layers" : lsublayers}
 
         d["req"] = ", ".join(lsublayers).replace("802.11 ", "")
-        d["size"] = p[Dot11Elt].len * 8
+        d["size"] = p[Dot11Elt].len * 8 # we want the size in Bytes
 
-        if p.haslayer(Dot11ProbeResp):
-            d["ts"] = p[Dot11ProbeResp].timestamp
-
-        if p.haslayer(Dot11Beacon):
-            d["ts"] = p[Dot11Beacon].timestamp
-
+        # TODO: Take a look at p[Dot11ProbeResp].timestamp and p[Dot11Beacon].timestamp
         d["ts"] = datetime.now()
-
-        #strptime
 
         post_process(d)
     except Exception as e:
         print e
 
 def dict_print(d):
+    """
+    Example implementation to print package's info
+    """
     for k, v in d.items():
         print "%s \t=\t%s" % (k, v) 
 
-def post_process_package_action(d):
-    if d: print d
-
 def dict2log(kwargs):
-    access_point = kwargs.get("ssid", "Unknown")
-    mac = kwargs.get("bssid", "Unknown")
-    ts = kwargs.get("ts", "[0/0/00:0:0]")
-    request_size = kwargs.get("size", "100") 
+    """
+    Print sniffed package's info to a NCSA-like log format
+    """
+    access_point  = kwargs.get("ssid", "Unknown")
+    mac           = kwargs.get("bssid", "Unknown")
+    ts            = kwargs.get("ts", "[0/0/00:0:0]")
+    request_size  = kwargs.get("size", "100") 
     response_code = kwargs.get("code", "200") 
-    
-    request         = kwargs.get("req", "no-data")
+    request       = kwargs.get("req", "no-data")
 
     if access_point == mac == "Unknown":
         return
-    
-    template =  '{mac} - - {ts} "{request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 
-    print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S]"), request=request, response_code=200,
-            request_size=request_size, access_point=access_point)
+    # TODO: Make this template constant? 
+    template =  '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 
+    print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), request=request,
+                          response_code=response_code, request_size=request_size, access_point=access_point)
 
 if __name__ == '__main__':
-    #subprocess.Popen(["airmon-ng", "start", IFACE ])
+    #subprocess.Popen(["airmon-ng", "start", IFACE ]) #TODO: implement monitor mode detection (or externalize?)
     pull_data()
