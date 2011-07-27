@@ -9,3 +9,6 @@ Documentacion de Scapy
 
 http://www.secdev.org/projects/scapy/doc/index.html
 
+Visualizar
+==============================
+logstalgia log -g " ,.*,0"  --paddle-mode pid --hide-response-code
