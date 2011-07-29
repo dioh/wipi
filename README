@@ -1,14 +1,17 @@
-Dependencias
+Dependencies
 ==============================
-
 * Scapy
-* La interfaz en modo monitor.
+* Wireless interface in monitor mode
 
-Documentacion de Scapy
+Visualization
 ==============================
+cat generated_log | logstalgia  -g " ,.*,0" --paddle-mode pid --hide-response-code -
 
-http://www.secdev.org/projects/scapy/doc/index.html
+Or, if you want to generate a video:
+cat generated_log | logstalgia -g " ,.*,0" --paddle-mode pid --hide-response-code --output-ppm-stream - - |  ffmpeg -y -b 3000K -r 60 -f image2pipe -vcodec ppm -i - -vcodec mpeg4  wipy.mp4
 
-Visualizar
+Links
 ==============================
-logstalgia log -g " ,.*,0"  --paddle-mode pid --hide-response-code
+Scapy docs: http://www.secdev.org/projects/scapy/doc/index.html
+Logstalgia: https://code.google.com/p/logstalgia/
+
