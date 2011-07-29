@@ -91,8 +91,8 @@ def dict2log(kwargs):
     access_point  = kwargs.get("ssid", "Unknown")
     mac           = kwargs.get("bssid", "Unknown")
     ts            = kwargs.get("ts", "[0/0/00:0:0]")
-    request_size  = kwargs.get("size", "100") 
-    response_code = kwargs.get("code", "200") 
+    request_size  = kwargs.get("size", "100")
+    response_code = kwargs.get("code", "200")
     request       = kwargs.get("req", "no-data")
 
     if access_point == mac == "Unknown":
@@ -101,7 +101,7 @@ def dict2log(kwargs):
     # TODO: Make this template constant? 
     template =  '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 
-    print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), request=request,
+    print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), request=access_point,
                           response_code=response_code, request_size=request_size, access_point=access_point)
 
 if __name__ == '__main__':
