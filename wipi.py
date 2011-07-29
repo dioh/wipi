@@ -63,7 +63,7 @@ def process_sniffed_package(p, post_process):
 
         d = {"ssid": ssid, "bssid": bssid, "layers" : lsublayers}
 
-        d["req"] = ", ".join(lsublayers).replace("802.11 ", "")
+        d["layers"] = ", ".join(lsublayers).replace("802.11 ", "")
         d["size"] = p[Dot11Elt].len * 80 # we want the size in Bytes
 
         if p.haslayer(Dot11ProbeResp):
@@ -90,10 +90,10 @@ def dict2log(kwargs):
     """
     access_point  = kwargs.get("ssid", "Unknown")
     mac           = kwargs.get("bssid", "Unknown")
-    ts            = kwargs.get("ts", "[0/0/00:0:0]")
+    ts            = kwargs.get("ts", datetime.now())
     request_size  = kwargs.get("size", "100")
     response_code = kwargs.get("code", "200")
-    request       = kwargs.get("req", "no-data")
+    request       = access_point
 
     if access_point == mac == "Unknown":
         return
@@ -101,7 +101,7 @@ def dict2log(kwargs):
     # TODO: Make this template constant? 
     template =  '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 
-    print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), request=access_point,
+    print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), request=request,
                           response_code=response_code, request_size=request_size, access_point=access_point)
 
 if __name__ == '__main__':
