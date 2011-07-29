@@ -67,7 +67,7 @@ def process_sniffed_package(p, post_process):
         d["size"] = p[Dot11Elt].len * 80 # we want the size in Bytes
 
         if p.haslayer(Dot11ProbeResp):
-            d["ts"] = datetime.strptime(time.ctime(p[Dot11ProbeResp].time),"%a %b %d %H:%M:%S %Y")
+            d["ts"] = datetime.strptime(time.ctime(p[Dot11ProbeResp].time),"%a %b %d %H:%M:%S %Y") # TODO: Improve
         elif p.haslayer(Dot11Beacon):
             d["ts"] = datetime.strptime(time.ctime(p[Dot11Beacon].time),"%a %b %d %H:%M:%S %Y")
         else:
