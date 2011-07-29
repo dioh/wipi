@@ -83,7 +83,7 @@ def dict_print(d):
     """
     for k, v in d.items():
         print "%s \t=\t%s" % (k, v) 
-
+import time
 dict2log_template = '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 def dict2log(kwargs):
     """
@@ -94,7 +94,7 @@ def dict2log(kwargs):
     ts            = kwargs.get("ts", datetime.now())
     request_size  = kwargs.get("size", "100")
     response_code = kwargs.get("code", "200")
-    request       = access_point
+    request       = "%s TYPE" % access_point
 
     if access_point == mac == "Unknown":
         return
