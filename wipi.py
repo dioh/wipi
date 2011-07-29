@@ -84,6 +84,7 @@ def dict_print(d):
     for k, v in d.items():
         print "%s \t=\t%s" % (k, v) 
 
+dic2log_template =  '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 def dict2log(kwargs):
     """
     Print sniffed package's info to a NCSA-like log format
@@ -98,10 +99,7 @@ def dict2log(kwargs):
     if access_point == mac == "Unknown":
         return
 
-    # TODO: Make this template constant? 
-    template =  '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
-
-    print template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), request=request,
+    print dic2log_template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), request=request,
                           response_code=response_code, request_size=request_size, access_point=access_point)
 
 if __name__ == '__main__':
