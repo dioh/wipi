@@ -4,6 +4,8 @@
 import subprocess
 import sys
 from datetime import datetime
+import time
+
 try:
     from scapy.sendrecv import sniff
     from scapy.layers.dot11 import *
@@ -52,22 +54,24 @@ def pull_data():
 def process_sniffed_package(p, post_process):
     try:
         d = {}
-        ssid        = p[Dot11Elt].info
-        ssid = filter(lambda x: x in string.printable,  ssid) 
-        d["ssid"]   = ssid
-        bssid       = p[Dot11].addr3		
-        d["bssid"]  = bssid
-
+        ssid  = p[Dot11Elt].info
+        ssid  = filter(lambda x: x in string.printable, ssid)
+        bssid = p[Dot11].addr3
+        
         # Guardo el tipo de probe:
         lsublayers = [ i.name for i in filter( lambda x: p.haslayer(x), dot11_types ) ]
 
         d = {"ssid": ssid, "bssid": bssid, "layers" : lsublayers}
 
         d["req"] = ", ".join(lsublayers).replace("802.11 ", "")
-        d["size"] = p[Dot11Elt].len * 8 # we want the size in Bytes
+        d["size"] = p[Dot11Elt].len * 80 # we want the size in Bytes
 
-        # TODO: Take a look at p[Dot11ProbeResp].timestamp and p[Dot11Beacon].timestamp
-        d["ts"] = datetime.now()
+        if p.haslayer(Dot11ProbeResp):
+            d["ts"] = datetime.strptime(time.ctime(p[Dot11ProbeResp].time),"%a %b %d %H:%M:%S %Y")
+        elif p.haslayer(Dot11Beacon):
+            d["ts"] = datetime.strptime(time.ctime(p[Dot11Beacon].time),"%a %b %d %H:%M:%S %Y")
+        else:
+            d["ts"] = datetime.now()
 
         post_process(d)
     except Exception as e:
@@ -103,3 +107,4 @@ def dict2log(kwargs):
 if __name__ == '__main__':
     #subprocess.Popen(["airmon-ng", "start", IFACE ]) #TODO: implement monitor mode detection (or externalize?)
     pull_data()
+
