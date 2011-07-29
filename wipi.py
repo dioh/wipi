@@ -84,7 +84,7 @@ def dict_print(d):
     for k, v in d.items():
         print "%s \t=\t%s" % (k, v) 
 
-dict2log_template =  '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
+dict2log_template = '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 def dict2log(kwargs):
     """
     Print sniffed package's info to a NCSA-like log format
