@@ -74,6 +74,8 @@ def process_sniffed_package(p, post_process):
             d["ts"] = datetime.now()
 
         post_process(d)
+    except KeyboardInterrupt as interrupt:
+        exit(0)
     except Exception as e:
         print e
 
