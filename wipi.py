@@ -17,12 +17,6 @@ except Exception as e:
 
 import string
 
-if len(sys.argv) != 2:
-   print "usage: wipi.py iface"
-   print "iface must be provided"
-   exit(1)
-
-IFACE = sys.argv[1]
 
 dot11_types = [ Dot11Addr3MACField,
         Dot11AssoReq,
@@ -137,6 +131,11 @@ def dict2log(kwargs):
                           response_code=response_code, request_size=request_size, access_point=access_point)
 
 if __name__ == '__main__':
-    #subprocess.Popen(["airmon-ng", "start", IFACE ]) #TODO: implement monitor mode detection (or externalize?)
+    if len(sys.argv) != 2:
+       print "usage: wipi.py iface"
+       print "iface must be provided"
+       exit(1)
+
+    IFACE = sys.argv[1]
     pull_data()
 
