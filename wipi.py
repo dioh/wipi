@@ -5,6 +5,8 @@ import subprocess
 import sys
 from datetime import datetime
 import time
+from pickle import Pickler, Unpickler, UnpicklingError
+from os.path import isfile
 
 try:
     from scapy.sendrecv import sniff
@@ -79,12 +81,42 @@ def process_sniffed_package(p, post_process):
     except Exception as e:
         print e
 
+P_DICT = "persisted_dict"
+def persist_bssid_ssids(d):
+    
+    pd = {}
+    if isfile(P_DICT):
+        try:
+            with open(P_DICT) as f:
+                up = Unpickler(f)
+                pd = up.load()
+        except UnpicklingError as pe:
+            print pe
+            exit(-1)
+
+    bssid = d["bssid"]
+    n_ssid = d["ssid"]
+
+    r_ssids = pd.get(bssid, [])
+    if not n_ssid in r_ssids:
+        r_ssids.append(n_ssid)
+
+    pd[bssid] = r_ssids
+
+    # Time to pickle
+    with open(P_DICT, "w+") as f:
+        pick = Pickler(f)
+        pick.dump(pd)
+
+
 def dict_print(d):
     """
     Example implementation to print package's info
     """
     for k, v in d.items():
         print "%s \t=\t%s" % (k, v) 
+
+
 import time
 dict2log_template = '{mac} - - {ts} "GET {request}" {response_code} {request_size} "-" "-" "{access_point}"' 
 def dict2log(kwargs):

@@ -7,6 +7,9 @@ Visualization
 ==============================
 cat generated_log | logstalgia  -g " ,.*,0" --paddle-mode pid --hide-response-code -
 
+or todo a real time log:
+sudo ./wipi.py | logstalgia  -g " ,.*,0" --paddle-mode pid --hide-response-code -
+
 Or, if you want to generate a video:
 cat generated_log | logstalgia -g " ,.*,0" --paddle-mode pid --hide-response-code --output-ppm-stream - - |  ffmpeg -y -b 3000K -r 60 -f image2pipe -vcodec ppm -i - -vcodec mpeg4  wipy.mp4
 
