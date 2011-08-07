@@ -44,7 +44,7 @@ def pull_data():
     Obtiene datos de la interfaz. Deberia delegar el pedido al manager de datos
     """
     sniff(iface = IFACE,
-          prn = lambda package: process_sniffed_package(package, dict2log),
+          prn = lambda package: process_sniffed_package(package, persist_bssid_ssids),
           lfilter = lambda package: package.haslayer(Dot11Elt) )
 
 def process_sniffed_package(p, post_process):
@@ -60,12 +60,20 @@ def process_sniffed_package(p, post_process):
         d = {"ssid": ssid, "bssid": bssid, "layers" : lsublayers}
 
         d["layers"] = ", ".join(lsublayers).replace("802.11 ", "")
+
         d["size"] = p[Dot11Elt].len * 80 # we want the size in Bytes
 
+        d["capability"] = p.sprintf("{Dot11Beacon:%Dot11Beacon.cap%}\
+					{Dot11ProbeResp:%Dot11ProbeResp.cap%}")
+
+        d["power"]      = p.sprintf("{PrismHeader:%PrismHeader.signal%}")
+
         if p.haslayer(Dot11ProbeResp):
-            d["ts"] = datetime.strptime(time.ctime(p[Dot11ProbeResp].time),"%a %b %d %H:%M:%S %Y") # TODO: Improve
+	    d["ts"] = datetime.strptime(time.ctime(p[Dot11ProbeResp].time),
+			    "%a %b %d %H:%M:%S %Y") # TODO: Improve
         elif p.haslayer(Dot11Beacon):
-            d["ts"] = datetime.strptime(time.ctime(p[Dot11Beacon].time),"%a %b %d %H:%M:%S %Y")
+            d["ts"] = datetime.strptime(time.ctime(p[Dot11Beacon].time),
+			    "%a %b %d %H:%M:%S %Y")
         else:
             d["ts"] = datetime.now()
 
@@ -77,7 +85,6 @@ def process_sniffed_package(p, post_process):
 
 P_DICT = "persisted_dict"
 def persist_bssid_ssids(d):
-    
     pd = {}
     if isfile(P_DICT):
         try:
@@ -88,14 +95,14 @@ def persist_bssid_ssids(d):
             print pe
             exit(-1)
 
-    bssid = d["bssid"]
-    n_ssid = d["ssid"]
+    ssid = d["ssid"]
+    n_bssid = d["bssid"]
 
-    r_ssids = pd.get(bssid, [])
-    if not n_ssid in r_ssids:
-        r_ssids.append(n_ssid)
-
-    pd[bssid] = r_ssids
+    r_bssids = pd.get(ssid, [])
+    if not "privacy" in d["capability"] and not n_bssid in r_bssids:
+        r_bssids.append(n_bssid) 
+        pd[ssid] = r_bssids
+        print "SSID: %s, Power: %s, BSIDs: " % (ssid, d["power"]), r_bssids
 
     # Time to pickle
     with open(P_DICT, "w+") as f:
@@ -127,14 +134,16 @@ def dict2log(kwargs):
     if access_point == mac == "Unknown":
         return
 
-    print dict2log_template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), request=request,
-                          response_code=response_code, request_size=request_size, access_point=access_point)
+    print dict2log_template.format(mac=mac, ts=ts.strftime("[%d/%b/%Y:%H:%M:%S +0000]"), 
+		    request=request, response_code=response_code,
+		    request_size=request_size, access_point=access_point)
 
+IFACE = "mon0"
 if __name__ == '__main__':
     if len(sys.argv) != 2:
        print "usage: wipi.py iface"
        print "iface must be provided"
-       exit(1)
+       print "Defaulting to: %s" % IFACE
 
     IFACE = sys.argv[1]
     pull_data()
