@@ -1,3 +1,8 @@
+Why?
+====
+The idea of this project is to visualize the WiFi packages that are "floating" around us all the time.
+
+Some people are more creative than us, and created an amazing RealWorld™ representation of WiFi signals: http://yourban.no/2011/02/22/immaterials-light-painting-wifi/
 Dependencies
 ==============================
 * Scapy
